@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Test</title> 
+<body> 
+<input type="file" id="files" name="files[]" multiple webkitdirectory/>
+<output id="list"></output>
+<script type="module">
+	const myWorker = new Worker("worker.js");
+	document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+	let output = [];
+
+	function handleFileSelect(evt) {
+	  let files = evt.target.files;
+	  output.length = 0;
+	  myWorker.postMessage({files});
+	  console.log('Message posted to worker');
+	}
+
+	myWorker.onmessage = function(e) {
+	  // console.log('Message received from worker');
+	  let text = e.data;
+	  if (typeof text !== "string") {
+	  	text = text.string;
+	  	download(text);
+	  	return;
+	  }
+	  output.push('<li>', text, '</li>');
+	  document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+	}
+
+	function download(string) {
+	  var element = document.createElement('a');
+	  element.setAttribute('href', 'data:application/x-binary;base64,' + btoa(string));
+	  element.setAttribute('download', 'mc.xsa');
+	  element.style.display = 'none';
+	  document.body.appendChild(element);
+	  element.click();
+	  document.body.removeChild(element);
+	}
+</script>
+</body>
+</html>
